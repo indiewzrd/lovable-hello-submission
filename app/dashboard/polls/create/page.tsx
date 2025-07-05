@@ -12,7 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner"
 import { Plus, Trash2 } from "lucide-react"
 import { useWallet } from "@/hooks/use-wallet"
-import { parseUSDC } from "@/lib/contracts"
+import { usePollFactory } from "@/lib/contracts/hooks"
+import { parseUnits } from "viem"
 
 interface PollOption {
   id: number
@@ -29,6 +30,7 @@ function CreatePollContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { authenticated, address } = useWallet()
+  const { deployPoll, isDeploying, isDeploySuccess } = usePollFactory()
   const [isLoading, setIsLoading] = useState(false)
   
   const [projects, setProjects] = useState<Project[]>([])
@@ -161,9 +163,37 @@ function CreatePollContent() {
 
     setIsLoading(true)
     try {
-      // TODO: Deploy poll contract and save to database
-      toast.success("Poll created successfully!")
-      router.push("/dashboard")
+      // Convert dates to timestamps
+      const startTimestamp = Math.floor(new Date(`${startDate}T${startTime}`).getTime() / 1000)
+      const endTimestamp = Math.floor(new Date(`${endDate}T${endTime}`).getTime() / 1000)
+      
+      // Deploy poll contract
+      const txHash = await deployPoll({
+        startTime: startTimestamp,
+        endTime: endTimestamp,
+        tokensPerVote: tokensPerVote,
+        winningOptionsCount: parseInt(winningOptionsCount),
+        totalOptionsCount: options.length
+      })
+      
+      if (!txHash) {
+        throw new Error("Failed to deploy poll contract")
+      }
+      
+      toast.info("Poll contract deployed! Waiting for confirmation...")
+      
+      // Wait for deployment success
+      // The hook will handle the confirmation
+      
+      // TODO: After confirmation, save poll metadata to database
+      // This should include the deployed contract address, question, options, etc.
+      
+      // For now, redirect after deployment
+      setTimeout(() => {
+        toast.success("Poll created successfully!")
+        router.push("/dashboard")
+      }, 3000)
+      
     } catch (error) {
       console.error(error)
       toast.error("Failed to create poll")
@@ -340,12 +370,12 @@ function CreatePollContent() {
             type="button"
             variant="outline"
             onClick={() => router.back()}
-            disabled={isLoading}
+            disabled={isLoading || isDeploying}
           >
             Cancel
           </Button>
-          <Button type="submit" disabled={isLoading} className="flex-1">
-            {isLoading ? "Creating..." : "Create Poll"}
+          <Button type="submit" disabled={isLoading || isDeploying} className="flex-1">
+            {isDeploying ? "Deploying Contract..." : isLoading ? "Creating..." : "Create Poll"}
           </Button>
         </div>
       </form>
