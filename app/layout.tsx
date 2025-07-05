@@ -1,5 +1,6 @@
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { TailwindIndicator } from "@/components/utility/tailwind-indicator"
+import { Providers } from "@/lib/providers"
 import type { Metadata } from "next"
 import { ThemeProvider } from "next-themes"
 import { Geist, Geist_Mono } from "next/font/google"
@@ -31,14 +32,16 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-          <TooltipProvider>
-            {children}
+        <Providers>
+          <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+            <TooltipProvider>
+              {children}
 
-            <TailwindIndicator />
-            <Toaster />
-          </TooltipProvider>
-        </ThemeProvider>
+              <TailwindIndicator />
+              <Toaster />
+            </TooltipProvider>
+          </ThemeProvider>
+        </Providers>
       </body>
     </html>
   )
