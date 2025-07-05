@@ -1,7 +1,5 @@
-import { CheckoutRedirect } from "@/components/payments/checkout-redirect"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { TailwindIndicator } from "@/components/utility/tailwind-indicator"
-import { ClerkProvider } from "@clerk/nextjs"
 import type { Metadata } from "next"
 import { ThemeProvider } from "next-themes"
 import { Geist, Geist_Mono } from "next/font/google"
@@ -19,8 +17,8 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "Mckay's App Template",
-  description: "The easiest way to start your next project."
+  title: "Stakedriven - Web3 Fundable Polls",
+  description: "Vote and fund features with on-chain funds. The web3 native way to align product development with community needs."
 }
 
 export default function RootLayout({
@@ -29,22 +27,19 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <ClerkProvider>
-      <html lang="en" suppressHydrationWarning>
-        <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        >
-          <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-            <TooltipProvider>
-              {children}
-              <CheckoutRedirect />
+    <html lang="en" suppressHydrationWarning>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+          <TooltipProvider>
+            {children}
 
-              <TailwindIndicator />
-              <Toaster />
-            </TooltipProvider>
-          </ThemeProvider>
-        </body>
-      </html>
-    </ClerkProvider>
+            <TailwindIndicator />
+            <Toaster />
+          </TooltipProvider>
+        </ThemeProvider>
+      </body>
+    </html>
   )
 }
