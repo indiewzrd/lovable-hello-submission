@@ -22,7 +22,11 @@ const nextConfig: NextConfig = {
   images: {
     domains: [],
     unoptimized: true
-  }
+  },
+  // Reduce build output size
+  output: 'standalone',
+  // Disable telemetry
+  telemetry: false
 }
 
 export default nextConfig

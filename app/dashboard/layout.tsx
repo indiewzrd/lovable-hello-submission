@@ -1,6 +1,9 @@
 import { ConnectButton } from "@/components/wallet/connect-button"
 import Link from "next/link"
 
+// Force dynamic rendering for dashboard pages
+export const dynamic = 'force-dynamic'
+
 export default function DashboardLayout({
   children,
 }: {
