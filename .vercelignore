@@ -1,0 +1,10 @@
+.env.local
+node_modules
+.next
+.git
+hardhat.config.ts
+contracts
+test
+scripts
+cache
+typechain-types

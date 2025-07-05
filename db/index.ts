@@ -1,18 +1,20 @@
 import { config } from "dotenv"
 import { drizzle as drizzlePostgres } from "drizzle-orm/postgres-js"
 import postgres from "postgres"
-import { customers } from "./schema/customers"
+import { users, projects, polls } from "./schema"
 
 config({ path: ".env.local" })
 
 const databaseUrl = process.env.DATABASE_URL
-if (!databaseUrl) {
+if (!databaseUrl && process.env.NODE_ENV === "production") {
   throw new Error("DATABASE_URL is not set")
 }
 
 const dbSchema = {
   // tables
-  customers
+  users,
+  projects,
+  polls
   // relations
 }
 
@@ -21,4 +23,4 @@ function initializeDb(url: string) {
   return drizzlePostgres(client, { schema: dbSchema })
 }
 
-export const db = initializeDb(databaseUrl)
+export const db = databaseUrl ? initializeDb(databaseUrl) : null as any

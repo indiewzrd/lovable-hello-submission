@@ -1,12 +1,14 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect, Suspense } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "sonner"
 import { Plus, Trash2 } from "lucide-react"
 import { useWallet } from "@/hooks/use-wallet"
@@ -18,11 +20,19 @@ interface PollOption {
   description?: string
 }
 
-export default function CreatePollPage() {
+type Project = {
+  id: string
+  name: string
+}
+
+function CreatePollContent() {
   const router = useRouter()
-  const { authenticated } = useWallet()
+  const searchParams = useSearchParams()
+  const { authenticated, address } = useWallet()
   const [isLoading, setIsLoading] = useState(false)
   
+  const [projects, setProjects] = useState<Project[]>([])
+  const [selectedProject, setSelectedProject] = useState("")
   const [question, setQuestion] = useState("")
   const [description, setDescription] = useState("")
   const [options, setOptions] = useState<PollOption[]>([
@@ -35,6 +45,35 @@ export default function CreatePollPage() {
   const [startTime, setStartTime] = useState("")
   const [endDate, setEndDate] = useState("")
   const [endTime, setEndTime] = useState("")
+
+  useEffect(() => {
+    if (address) {
+      fetchProjects()
+    }
+  }, [address]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    const projectId = searchParams.get('project')
+    if (projectId && projects.length > 0) {
+      setSelectedProject(projectId)
+    }
+  }, [searchParams, projects])
+
+  const fetchProjects = async () => {
+    try {
+      const response = await fetch(`/api/projects?wallet=${address}`)
+      if (!response.ok) throw new Error("Failed to fetch projects")
+      const data = await response.json()
+      setProjects(data)
+      
+      // If only one project, select it automatically
+      if (data.length === 1) {
+        setSelectedProject(data[0].id)
+      }
+    } catch (error) {
+      console.error("Error fetching projects:", error)
+    }
+  }
 
   if (!authenticated) {
     return (
@@ -68,6 +107,11 @@ export default function CreatePollPage() {
   }
 
   const validateForm = () => {
+    if (!selectedProject) {
+      toast.error("Please select a project")
+      return false
+    }
+
     if (!question.trim()) {
       toast.error("Question is required")
       return false
@@ -137,6 +181,27 @@ export default function CreatePollPage() {
           <h2 className="text-xl font-semibold mb-4">Poll Details</h2>
           
           <div className="space-y-4">
+            <div>
+              <Label htmlFor="project">Project *</Label>
+              <Select value={selectedProject} onValueChange={setSelectedProject}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a project" />
+                </SelectTrigger>
+                <SelectContent>
+                  {projects.map(project => (
+                    <SelectItem key={project.id} value={project.id}>
+                      {project.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {projects.length === 0 && (
+                <p className="text-sm text-muted-foreground mt-1">
+                  <Link href="/dashboard/projects" className="underline">Create a project</Link> to get started
+                </p>
+              )}
+            </div>
+
             <div>
               <Label htmlFor="question">Question *</Label>
               <Input
@@ -285,5 +350,13 @@ export default function CreatePollPage() {
         </div>
       </form>
     </div>
+  )
+}
+
+export default function CreatePollPage() {
+  return (
+    <Suspense fallback={<div className="container mx-auto py-8">Loading...</div>}>
+      <CreatePollContent />
+    </Suspense>
   )
 }

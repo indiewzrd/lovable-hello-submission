@@ -12,6 +12,7 @@ import { useWallet } from "@/hooks/use-wallet"
 import { useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi"
 import { Clock, Users, DollarSign, CheckCircle } from "lucide-react"
 import type { Address } from "viem"
+import { ClaimSection } from "@/components/polls/claim-section"
 
 interface VotingResult {
   option: number
@@ -50,6 +51,11 @@ export default function PollPage() {
   const { data: totalOptionsCount } = useReadContract({
     ...pollContract(pollAddress),
     functionName: "totalOptionsCount"
+  })
+
+  const { data: winningOptionsCount } = useReadContract({
+    ...pollContract(pollAddress),
+    functionName: "winningOptionsCount"
   })
 
   const { data: votingResults } = useReadContract({
@@ -96,7 +102,7 @@ export default function PollPage() {
   const isEnded = now >= end
 
   // Calculate total votes
-  const totalVotes = votingResults?.[1]?.reduce((sum: bigint, votes: bigint) => sum + votes, 0n) || 0n
+  const totalVotes = votingResults?.[1]?.reduce((sum: bigint, votes: bigint) => sum + votes, BigInt(0)) || BigInt(0)
 
   // Mock poll metadata (in real app, fetch from database)
   const pollMetadata = {
@@ -227,8 +233,8 @@ export default function PollPage() {
           
           <div className="space-y-4">
             {pollMetadata.options.map((option, index) => {
-              const votes = votingResults?.[1]?.[index] || 0n
-              const percentage = totalVotes > 0n ? Number((votes * 100n) / totalVotes) : 0
+              const votes = votingResults?.[1]?.[index] || BigInt(0)
+              const percentage = totalVotes > BigInt(0) ? Number((votes * BigInt(100)) / totalVotes) : 0
               const isSelected = selectedOption === option.id
               const isVotedOption = Number(voterChoice) === option.id
 
@@ -316,6 +322,19 @@ export default function PollPage() {
             </div>
           )}
         </Card>
+
+        {/* Claim Section - Only visible after poll ends */}
+        {isEnded && authenticated && (
+          <ClaimSection 
+            pollAddress={pollAddress}
+            pollCreator={pollCreator}
+            voterChoice={voterChoice}
+            votingResults={votingResults}
+            winningOptionsCount={Number(winningOptionsCount || 2)}
+            tokensPerVote={tokensPerVote}
+            address={address}
+          />
+        )}
       </div>
     </div>
   )
