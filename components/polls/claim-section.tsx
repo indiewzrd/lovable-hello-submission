@@ -8,293 +8,284 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2, Trophy, DollarSign, AlertCircle, CheckCircle } from "lucide-react"
 import { useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi"
 import { formatUnits } from "viem"
-import { pollContract } from "@/lib/contracts"
+import { contractABIs } from "@/lib/contracts/config"
 import { toast } from "sonner"
+import { useWallet } from "@/hooks/use-wallet"
 
 interface ClaimSectionProps {
   pollAddress: `0x${string}`
-  pollCreator?: string
-  voterChoice?: bigint
-  votingResults?: readonly [readonly bigint[], readonly bigint[]]
-  winningOptionsCount: number
-  tokensPerVote?: bigint
-  address?: `0x${string}`
+  pollCreator?: `0x${string}`
+  hasVoted?: boolean
 }
 
 export function ClaimSection({
   pollAddress,
   pollCreator,
-  voterChoice,
-  votingResults,
-  winningOptionsCount,
-  tokensPerVote,
-  address
+  hasVoted
 }: ClaimSectionProps) {
-  const [winningOptions, setWinningOptions] = useState<number[]>([])
-  const [isWinner, setIsWinner] = useState(false)
-  const [isCreator, setIsCreator] = useState(false)
+  const { address } = useWallet()
+  const [claimType, setClaimType] = useState<'creator' | 'refund' | 'fee' | null>(null)
   
-  // Check if user has already claimed
-  const { data: hasClaimedWinning } = useReadContract({
-    ...pollContract(pollAddress),
-    functionName: "hasClaimedWinningFunds",
+  // Read contract data
+  const { data: winnersCalculated } = useReadContract({
+    address: pollAddress,
+    abi: contractABIs.poll,
+    functionName: "winnersCalculated"
+  })
+
+  const { data: winningOptions } = useReadContract({
+    address: pollAddress,
+    abi: contractABIs.poll,
+    functionName: "getWinningOptions",
+    enabled: !!winnersCalculated
+  })
+
+  const { data: voterChoice } = useReadContract({
+    address: pollAddress,
+    abi: contractABIs.poll,
+    functionName: "voterChoice",
     args: address ? [address] : undefined
   })
 
   const { data: hasClaimedRefund } = useReadContract({
-    ...pollContract(pollAddress),
-    functionName: "hasClaimedNonWinningRefund",
+    address: pollAddress,
+    abi: contractABIs.poll,
+    functionName: "hasClaimedRefund",
     args: address ? [address] : undefined
   })
 
-  const { data: hasCreatorClaimed } = useReadContract({
-    ...pollContract(pollAddress),
-    functionName: "winningFundsClaimed",
+  const { data: creatorClaimed } = useReadContract({
+    address: pollAddress,
+    abi: contractABIs.poll,
+    functionName: "creatorClaimed"
   })
 
-  // Contract write hooks
+  const { data: feeClaimed } = useReadContract({
+    address: pollAddress,
+    abi: contractABIs.poll,
+    functionName: "feeClaimed"
+  })
+
+  const { data: winningAmount } = useReadContract({
+    address: pollAddress,
+    abi: contractABIs.poll,
+    functionName: "winningAmount",
+    enabled: !!winnersCalculated
+  })
+
+  const { data: feeAmount } = useReadContract({
+    address: pollAddress,
+    abi: contractABIs.poll,
+    functionName: "feeAmount",
+    enabled: !!winnersCalculated
+  })
+
+  // Write contracts
+  const { writeContract: calculateWinners, data: calculateHash } = useWriteContract()
   const { writeContract: claimWinningFunds, data: claimWinningHash } = useWriteContract()
   const { writeContract: claimRefund, data: claimRefundHash } = useWriteContract()
+  const { writeContract: claimFee, data: claimFeeHash } = useWriteContract()
 
-  const { isLoading: isClaimingWinning, isSuccess: isWinningClaimed } = useWaitForTransactionReceipt({
-    hash: claimWinningHash,
-  })
+  const { isLoading: isCalculating } = useWaitForTransactionReceipt({ hash: calculateHash })
+  const { isLoading: isClaimingWinning } = useWaitForTransactionReceipt({ hash: claimWinningHash })
+  const { isLoading: isClaimingRefund } = useWaitForTransactionReceipt({ hash: claimRefundHash })
+  const { isLoading: isClaimingFee } = useWaitForTransactionReceipt({ hash: claimFeeHash })
 
-  const { isLoading: isClaimingRefund, isSuccess: isRefundClaimed } = useWaitForTransactionReceipt({
-    hash: claimRefundHash,
-  })
+  // Check if user's vote is a winner
+  const isWinner = voterChoice && winningOptions && 
+    (winningOptions as bigint[]).some((option: bigint) => Number(option) === Number(voterChoice))
 
-  // Determine winning options
-  useEffect(() => {
-    if (votingResults) {
-      const [, votes] = votingResults
-      const sortedOptions = votes
-        .map((vote, index) => ({ index, votes: vote }))
-        .sort((a, b) => Number(b.votes - a.votes))
-        .slice(0, winningOptionsCount)
-        .map(option => option.index)
-      
-      setWinningOptions(sortedOptions)
-      
-      // Check if user voted for a winning option
-      if (voterChoice !== undefined) {
-        setIsWinner(sortedOptions.includes(Number(voterChoice)))
-      }
+  const isCreator = address && pollCreator && 
+    address.toLowerCase() === pollCreator.toLowerCase()
+
+  const handleCalculateWinners = async () => {
+    try {
+      calculateWinners({
+        address: pollAddress,
+        abi: contractABIs.poll,
+        functionName: "calculateWinners"
+      })
+    } catch (error) {
+      console.error(error)
+      toast.error("Failed to calculate winners")
     }
-  }, [votingResults, winningOptionsCount, voterChoice])
+  }
 
-  // Check if user is the poll creator
-  useEffect(() => {
-    if (address && pollCreator) {
-      setIsCreator(address.toLowerCase() === pollCreator.toLowerCase())
+  const handleClaimWinningFunds = async () => {
+    setClaimType('creator')
+    try {
+      claimWinningFunds({
+        address: pollAddress,
+        abi: contractABIs.poll,
+        functionName: "claimWinningFunds"
+      })
+    } catch (error) {
+      console.error(error)
+      toast.error("Failed to claim winning funds")
     }
-  }, [address, pollCreator])
+  }
 
-  // Handle claim success
-  useEffect(() => {
-    if (isWinningClaimed) {
-      toast.success("Successfully claimed winning funds!")
+  const handleClaimRefund = async () => {
+    setClaimType('refund')
+    try {
+      claimRefund({
+        address: pollAddress,
+        abi: contractABIs.poll,
+        functionName: "claimNonWinningRefund"
+      })
+    } catch (error) {
+      console.error(error)
+      toast.error("Failed to claim refund")
     }
-  }, [isWinningClaimed])
+  }
+
+  const handleClaimFee = async () => {
+    setClaimType('fee')
+    try {
+      claimFee({
+        address: pollAddress,
+        abi: contractABIs.poll,
+        functionName: "claimFee"
+      })
+    } catch (error) {
+      console.error(error)
+      toast.error("Failed to claim fee")
+    }
+  }
+
+  // Handle success
+  useEffect(() => {
+    if (calculateHash && !isCalculating) {
+      toast.success("Winners calculated successfully!")
+    }
+  }, [calculateHash, isCalculating])
 
   useEffect(() => {
-    if (isRefundClaimed) {
-      toast.success("Successfully claimed refund!")
+    if (claimWinningHash && !isClaimingWinning) {
+      toast.success("Winning funds claimed successfully!")
+      setClaimType(null)
     }
-  }, [isRefundClaimed])
+  }, [claimWinningHash, isClaimingWinning])
 
-  const handleClaimWinning = () => {
-    claimWinningFunds({
-      ...pollContract(pollAddress),
-      functionName: "claimWinningFunds"
-    })
-  }
+  useEffect(() => {
+    if (claimRefundHash && !isClaimingRefund) {
+      toast.success("Refund claimed successfully!")
+      setClaimType(null)
+    }
+  }, [claimRefundHash, isClaimingRefund])
 
-  const handleClaimRefund = () => {
-    claimRefund({
-      ...pollContract(pollAddress),
-      functionName: "claimNonWinningRefund"
-    })
-  }
-
-  const formatUSDC = (amount: bigint) => {
-    return `$${formatUnits(amount, 6)}`
-  }
-
-  // Calculate potential winnings for creator
-  const calculateCreatorWinnings = () => {
-    if (!votingResults || !tokensPerVote) return BigInt(0)
-    
-    const winningVotes = winningOptions.reduce((sum, optionIndex) => {
-      return sum + (votingResults[1][optionIndex] || BigInt(0))
-    }, BigInt(0))
-    
-    const totalWinnings = winningVotes * tokensPerVote
-    const feeAmount = (totalWinnings * BigInt(500)) / BigInt(10000) // 5% fee
-    
-    return totalWinnings - feeAmount
-  }
-
-  const creatorWinnings = calculateCreatorWinnings()
-
-  if (!address) {
-    return null
-  }
+  useEffect(() => {
+    if (claimFeeHash && !isClaimingFee) {
+      toast.success("Fee claimed successfully!")
+      setClaimType(null)
+    }
+  }, [claimFeeHash, isClaimingFee])
 
   return (
-    <div className="space-y-4">
-      {/* Poll Creator Claim */}
-      {isCreator && winningOptions.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Trophy className="h-5 w-5 text-yellow-500" />
-              Poll Creator Rewards
-            </CardTitle>
-            <CardDescription>
-              Claim funds from winning options as the poll creator
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
-              <div>
-                <p className="text-sm text-muted-foreground">Total Claimable</p>
-                <p className="text-2xl font-bold">{formatUSDC(creatorWinnings)} USDC</p>
-                <p className="text-xs text-muted-foreground mt-1">After 5% platform fee</p>
-              </div>
-              <DollarSign className="h-8 w-8 text-muted-foreground" />
+    <Card className="p-6">
+      <h2 className="text-xl font-semibold mb-4">Claim Rewards</h2>
+
+      {!winnersCalculated ? (
+        <div className="space-y-4">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="h-5 w-5 text-amber-500 mt-0.5" />
+            <div>
+              <p className="font-medium">Winners not calculated yet</p>
+              <p className="text-sm text-muted-foreground">
+                Anyone can calculate the winning options to enable claims.
+              </p>
             </div>
+          </div>
+          
+          <Button 
+            onClick={handleCalculateWinners}
+            disabled={isCalculating}
+            className="w-full"
+          >
+            {isCalculating ? "Calculating..." : "Calculate Winners"}
+          </Button>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {/* Show winning options */}
+          <div>
+            <p className="text-sm text-muted-foreground mb-2">Winning Options:</p>
+            <div className="flex gap-2">
+              {(winningOptions as bigint[])?.map((option: bigint) => (
+                <Badge key={option.toString()} variant="default">
+                  Option {option.toString()}
+                </Badge>
+              ))}
+            </div>
+          </div>
 
-            {hasCreatorClaimed ? (
-              <Alert>
-                <CheckCircle className="h-4 w-4" />
-                <AlertDescription>
-                  Creator funds have already been claimed
-                </AlertDescription>
-              </Alert>
-            ) : (
-              <Button 
-                onClick={handleClaimWinning}
-                disabled={isClaimingWinning}
-                className="w-full"
-                size="lg"
-              >
-                {isClaimingWinning ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Claiming...
-                  </>
-                ) : (
-                  "Claim Creator Rewards"
-                )}
-              </Button>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Voter Claims */}
-      {voterChoice !== undefined && !isCreator && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              {isWinner ? (
-                <>
-                  <Trophy className="h-5 w-5 text-yellow-500" />
-                  Winning Vote Rewards
-                </>
-              ) : (
-                <>
-                  <AlertCircle className="h-5 w-5 text-blue-500" />
-                  Non-Winning Vote Refund
-                </>
-              )}
-            </CardTitle>
-            <CardDescription>
-              {isWinner 
-                ? "Your vote was for a winning option! Claim your rewards."
-                : "Your vote was not for a winning option. Claim your refund."}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Your voted option:</span>
-                <Badge variant="outline">Option {Number(voterChoice) + 1}</Badge>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Claimable amount:</span>
-                <span className="font-semibold">
-                  {tokensPerVote ? formatUSDC(tokensPerVote) : "0"} USDC
+          {/* Creator claim */}
+          {isCreator && !creatorClaimed && (
+            <div className="p-4 border rounded-lg space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Trophy className="h-4 w-4 text-green-500" />
+                  <span className="font-medium">Creator Rewards</span>
+                </div>
+                <span className="text-sm font-semibold">
+                  {winningAmount && feeAmount ? formatUnits(winningAmount - feeAmount, 6) : "0"} USDC
                 </span>
               </div>
+              <Button
+                onClick={handleClaimWinningFunds}
+                disabled={isClaimingWinning || claimType === 'creator'}
+                size="sm"
+                className="w-full"
+              >
+                {isClaimingWinning && claimType === 'creator' ? "Claiming..." : "Claim Rewards"}
+              </Button>
             </div>
+          )}
 
-            {isWinner ? (
-              hasClaimedWinning ? (
-                <Alert>
-                  <CheckCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    You have already claimed your winning rewards
-                  </AlertDescription>
-                </Alert>
-              ) : (
-                <Button 
-                  onClick={handleClaimWinning}
-                  disabled={isClaimingWinning}
-                  className="w-full"
-                  size="lg"
-                >
-                  {isClaimingWinning ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Claiming...
-                    </>
-                  ) : (
-                    "Claim Winning Rewards"
-                  )}
-                </Button>
-              )
-            ) : (
-              hasClaimedRefund ? (
-                <Alert>
-                  <CheckCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    You have already claimed your refund
-                  </AlertDescription>
-                </Alert>
-              ) : (
-                <Button 
-                  onClick={handleClaimRefund}
-                  disabled={isClaimingRefund}
-                  className="w-full"
-                  size="lg"
-                  variant="secondary"
-                >
-                  {isClaimingRefund ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Claiming...
-                    </>
-                  ) : (
-                    "Claim Refund"
-                  )}
-                </Button>
-              )
-            )}
-          </CardContent>
-        </Card>
-      )}
+          {/* Voter refund */}
+          {hasVoted && !isWinner && !hasClaimedRefund && (
+            <div className="p-4 border rounded-lg space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <DollarSign className="h-4 w-4 text-blue-500" />
+                  <span className="font-medium">Voter Refund</span>
+                </div>
+                <Badge variant="secondary">Non-winning vote</Badge>
+              </div>
+              <Button
+                onClick={handleClaimRefund}
+                disabled={isClaimingRefund || claimType === 'refund'}
+                size="sm"
+                className="w-full"
+              >
+                {isClaimingRefund && claimType === 'refund' ? "Claiming..." : "Claim Refund"}
+              </Button>
+            </div>
+          )}
 
-      {/* No participation message */}
-      {voterChoice === undefined && !isCreator && (
-        <Alert>
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            You did not participate in this poll. Only voters and the poll creator can claim funds.
-          </AlertDescription>
-        </Alert>
+          {/* Success messages */}
+          {creatorClaimed && (
+            <div className="flex items-center gap-2 text-green-600">
+              <CheckCircle className="h-4 w-4" />
+              <span className="text-sm">Creator rewards claimed</span>
+            </div>
+          )}
+
+          {hasClaimedRefund && (
+            <div className="flex items-center gap-2 text-green-600">
+              <CheckCircle className="h-4 w-4" />
+              <span className="text-sm">Refund claimed</span>
+            </div>
+          )}
+
+          {feeClaimed && (
+            <div className="flex items-center gap-2 text-green-600">
+              <CheckCircle className="h-4 w-4" />
+              <span className="text-sm">Platform fee claimed</span>
+            </div>
+          )}
+        </div>
       )}
-    </div>
+    </Card>
   )
 }

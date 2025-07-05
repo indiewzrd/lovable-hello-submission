@@ -12,7 +12,7 @@ import { ArrowRight, Clock, Users, DollarSign } from "lucide-react"
 import { formatDistanceToNow } from "@/lib/utils"
 import { useReadContract } from "wagmi"
 import { formatUnits } from "viem"
-import { pollContract } from "@/lib/contracts"
+import { contractABIs } from "@/lib/contracts/config"
 
 type Poll = {
   id: string
@@ -46,14 +46,18 @@ function PollCard({ poll }: { poll: Poll }) {
     now < poll.startTime ? "upcoming" :
     now > poll.endTime ? "ended" : "active"
 
-  // Get total votes from contract
-  const { data: votesData } = useReadContract({
-    ...pollContract(poll.contractAddress as `0x${string}`),
-    functionName: "getTotalVotes",
+  // Get voting results from contract
+  const { data: votingResults } = useReadContract({
+    address: poll.contractAddress as `0x${string}`,
+    abi: contractABIs.poll,
+    functionName: "getVotingResults",
   })
 
-  const totalVotes = votesData ? Number(votesData) : 0
-  const totalFunding = totalVotes * poll.tokensPerVote
+  // Calculate total votes from voting results
+  const totalVotes = votingResults 
+    ? Number(votingResults[1].reduce((sum: bigint, votes: bigint) => sum + votes, 0n))
+    : 0
+  const totalFunding = totalVotes * parseFloat(poll.tokensPerVote)
 
   const statusConfig = {
     upcoming: {

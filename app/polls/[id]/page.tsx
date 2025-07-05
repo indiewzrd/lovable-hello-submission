@@ -7,12 +7,14 @@ import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
-import { formatUSDC, parseUSDC, pollContract, usdcContract } from "@/lib/contracts"
 import { useWallet } from "@/hooks/use-wallet"
-import { useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi"
+import { usePoll, useUSDCApproval } from "@/lib/contracts/hooks"
+import { contractAddresses, contractABIs } from "@/lib/contracts/config"
+import { useReadContract } from "wagmi"
+import { formatUnits } from "viem"
 import { Clock, Users, DollarSign, CheckCircle } from "lucide-react"
 import type { Address } from "viem"
-import { ClaimSection } from "@/components/polls/claim-section"
+import { baseSepolia } from "viem/chains"
 
 interface VotingResult {
   option: number
@@ -24,79 +26,63 @@ export default function PollPage() {
   const pollAddress = params.id as Address
   const { authenticated, address } = useWallet()
   const [selectedOption, setSelectedOption] = useState<number | null>(null)
-  const [isVoting, setIsVoting] = useState(false)
-  const [isApproving, setIsApproving] = useState(false)
 
-  // Read poll data
-  const { data: pollCreator } = useReadContract({
-    ...pollContract(pollAddress),
-    functionName: "pollCreator"
-  })
+  // Use custom hooks
+  const { 
+    pollCreator,
+    startTime,
+    endTime,
+    tokensPerVote,
+    votingResults,
+    vote,
+    isVoting,
+    isVoteSuccess
+  } = usePoll(pollAddress)
 
-  const { data: startTime } = useReadContract({
-    ...pollContract(pollAddress),
-    functionName: "startTime"
-  })
-
-  const { data: endTime } = useReadContract({
-    ...pollContract(pollAddress),
-    functionName: "endTime"
-  })
-
-  const { data: tokensPerVote } = useReadContract({
-    ...pollContract(pollAddress),
-    functionName: "tokensPerVote"
-  })
-
+  // Read additional poll data
   const { data: totalOptionsCount } = useReadContract({
-    ...pollContract(pollAddress),
+    address: pollAddress,
+    abi: contractABIs.poll,
     functionName: "totalOptionsCount"
   })
 
   const { data: winningOptionsCount } = useReadContract({
-    ...pollContract(pollAddress),
+    address: pollAddress,
+    abi: contractABIs.poll,
     functionName: "winningOptionsCount"
   })
 
-  const { data: votingResults } = useReadContract({
-    ...pollContract(pollAddress),
-    functionName: "getVotingResults"
-  })
-
   const { data: hasVoted } = useReadContract({
-    ...pollContract(pollAddress),
+    address: pollAddress,
+    abi: contractABIs.poll,
     functionName: "hasVoted",
     args: address ? [address] : undefined
   })
 
   const { data: voterChoice } = useReadContract({
-    ...pollContract(pollAddress),
+    address: pollAddress,
+    abi: contractABIs.poll,
     functionName: "voterChoice",
     args: address ? [address] : undefined
   })
 
   const { data: usdcAllowance } = useReadContract({
-    ...usdcContract,
+    address: contractAddresses[baseSepolia.id].usdc,
+    abi: contractABIs.usdc,
     functionName: "allowance",
     args: address ? [address, pollAddress] : undefined
   })
 
-  // Write contracts
-  const { writeContract: approve, data: approveHash } = useWriteContract()
-  const { writeContract: vote, data: voteHash } = useWriteContract()
-  
-  const { isLoading: isApprovalPending } = useWaitForTransactionReceipt({
-    hash: approveHash
-  })
-
-  const { isLoading: isVotePending } = useWaitForTransactionReceipt({
-    hash: voteHash
-  })
+  // USDC approval hook
+  const { approve, isApproving, isApproveSuccess } = useUSDCApproval(
+    pollAddress,
+    tokensPerVote
+  )
 
   // Calculate poll status
   const now = Math.floor(Date.now() / 1000)
-  const start = Number(startTime || 0)
-  const end = Number(endTime || 0)
+  const start = startTime || 0
+  const end = endTime || 0
   const isUpcoming = now < start
   const isActive = now >= start && now < end
   const isEnded = now >= end
@@ -116,59 +102,34 @@ export default function PollPage() {
     ]
   }
 
-  const handleApprove = async () => {
-    if (!tokensPerVote) return
-    
-    setIsApproving(true)
-    try {
-      approve({
-        ...usdcContract,
-        functionName: "approve",
-        args: [pollAddress, tokensPerVote]
-      })
-    } catch (error) {
-      console.error(error)
-      toast.error("Failed to approve USDC")
-      setIsApproving(false)
-    }
-  }
-
   const handleVote = async () => {
     if (!selectedOption) {
       toast.error("Please select an option")
       return
     }
 
-    setIsVoting(true)
     try {
-      vote({
-        ...pollContract(pollAddress),
-        functionName: "vote",
-        args: [BigInt(selectedOption)]
-      })
+      await vote(selectedOption)
     } catch (error) {
       console.error(error)
-      toast.error("Failed to submit vote")
-      setIsVoting(false)
     }
   }
 
   // Handle transaction success
   useEffect(() => {
-    if (approveHash && !isApprovalPending) {
-      setIsApproving(false)
+    if (isApproveSuccess) {
       toast.success("USDC approved successfully")
     }
-  }, [approveHash, isApprovalPending])
+  }, [isApproveSuccess])
 
   useEffect(() => {
-    if (voteHash && !isVotePending) {
-      setIsVoting(false)
+    if (isVoteSuccess) {
       toast.success("Vote submitted successfully!")
     }
-  }, [voteHash, isVotePending])
+  }, [isVoteSuccess])
 
-  const needsApproval = tokensPerVote && usdcAllowance !== undefined && usdcAllowance < tokensPerVote
+  const needsApproval = tokensPerVote && usdcAllowance !== undefined && 
+    BigInt(usdcAllowance) < BigInt(parseFloat(tokensPerVote) * 1e6)
 
   return (
     <div className="container max-w-4xl py-8">
@@ -203,7 +164,7 @@ export default function PollPage() {
               <div>
                 <p className="text-sm text-muted-foreground">Total Funded</p>
                 <p className="text-xl font-semibold">
-                  ${totalVotes && tokensPerVote ? formatUSDC(totalVotes) : "0"}
+                  ${totalVotes && tokensPerVote ? formatUnits(totalVotes, 6) : "0"}
                 </p>
               </div>
             </div>
@@ -283,25 +244,25 @@ export default function PollPage() {
               <div className="flex items-center justify-between text-sm">
                 <span>Cost per vote:</span>
                 <span className="font-semibold">
-                  {tokensPerVote ? formatUSDC(tokensPerVote) : "0"} USDC
+                  {tokensPerVote || "0"} USDC
                 </span>
               </div>
               
               {needsApproval ? (
                 <Button 
-                  onClick={handleApprove} 
-                  disabled={isApproving || isApprovalPending}
+                  onClick={approve} 
+                  disabled={isApproving}
                   className="w-full"
                 >
-                  {isApproving || isApprovalPending ? "Approving..." : "Approve USDC"}
+                  {isApproving ? "Approving..." : "Approve USDC"}
                 </Button>
               ) : (
                 <Button 
                   onClick={handleVote} 
-                  disabled={!selectedOption || isVoting || isVotePending}
+                  disabled={!selectedOption || isVoting}
                   className="w-full"
                 >
-                  {isVoting || isVotePending ? "Voting..." : "Submit Vote"}
+                  {isVoting ? "Voting..." : "Submit Vote"}
                 </Button>
               )}
             </div>
@@ -328,11 +289,7 @@ export default function PollPage() {
           <ClaimSection 
             pollAddress={pollAddress}
             pollCreator={pollCreator}
-            voterChoice={voterChoice}
-            votingResults={votingResults}
-            winningOptionsCount={Number(winningOptionsCount || 2)}
-            tokensPerVote={tokensPerVote}
-            address={address}
+            hasVoted={hasVoted}
           />
         )}
       </div>

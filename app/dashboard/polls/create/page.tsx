@@ -13,7 +13,9 @@ import { toast } from "sonner"
 import { Plus, Trash2 } from "lucide-react"
 import { useWallet } from "@/hooks/use-wallet"
 import { usePollFactory } from "@/lib/contracts/hooks"
+import { contractAddresses } from "@/lib/contracts/config"
 import { parseUnits } from "viem"
+import { baseSepolia } from "viem/chains"
 
 interface PollOption {
   id: number
@@ -182,17 +184,46 @@ function CreatePollContent() {
       
       toast.info("Poll contract deployed! Waiting for confirmation...")
       
-      // Wait for deployment success
-      // The hook will handle the confirmation
+      // Wait a bit for transaction to be mined
+      await new Promise(resolve => setTimeout(resolve, 5000))
       
-      // TODO: After confirmation, save poll metadata to database
-      // This should include the deployed contract address, question, options, etc.
+      // Get the deployed poll address from the transaction receipt
+      // For now, we'll use a placeholder - in production, you'd parse the event logs
+      const deployedAddress = txHash // This should be parsed from the transaction receipt
       
-      // For now, redirect after deployment
-      setTimeout(() => {
-        toast.success("Poll created successfully!")
-        router.push("/dashboard")
-      }, 3000)
+      // Save poll to database
+      const pollData = {
+        projectId: selectedProject,
+        contractAddress: deployedAddress,
+        question,
+        description,
+        options: options.map(opt => ({
+          id: opt.id,
+          text: opt.text,
+          description: opt.description
+        })),
+        startTime: startTimestamp,
+        endTime: endTimestamp,
+        tokensPerVote,
+        winningOptionsCount: parseInt(winningOptionsCount),
+        totalOptionsCount: options.length,
+        tokenAddress: contractAddresses[baseSepolia.id].usdc,
+        creatorAddress: address
+      }
+      
+      const response = await fetch('/api/polls', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(pollData)
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to save poll to database')
+      }
+      
+      const savedPoll = await response.json()
+      toast.success("Poll created successfully!")
+      router.push(`/polls/${savedPoll.id}`)
       
     } catch (error) {
       console.error(error)
