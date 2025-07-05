@@ -180,9 +180,9 @@ const erc20Abi = [
   }
 ] as const
 
-// Contract addresses from environment
-const POLL_FACTORY_ADDRESS = process.env.NEXT_PUBLIC_POLL_FACTORY_ADDRESS as `0x${string}`
-const USDC_ADDRESS = process.env.NEXT_PUBLIC_USDC_ADDRESS as `0x${string}`
+// Contract addresses from environment with fallbacks
+const POLL_FACTORY_ADDRESS = (process.env.NEXT_PUBLIC_POLL_FACTORY_ADDRESS || '0x0000000000000000000000000000000000000000') as `0x${string}`
+const USDC_ADDRESS = (process.env.NEXT_PUBLIC_USDC_ADDRESS || '0x0000000000000000000000000000000000000000') as `0x${string}`
 
 // Contract configs for wagmi
 export const pollFactoryContract = {
