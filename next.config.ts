@@ -24,9 +24,7 @@ const nextConfig: NextConfig = {
     unoptimized: true
   },
   // Reduce build output size
-  output: 'standalone',
-  // Disable telemetry
-  telemetry: false
+  output: 'standalone'
 }
 
 export default nextConfig
