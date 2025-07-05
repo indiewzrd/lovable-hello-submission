@@ -15,10 +15,18 @@ const wagmiConfig = createConfig({
 
 const queryClient = new QueryClient()
 
+// During build time, we might not have the Privy app ID
+const privyAppId = process.env.NEXT_PUBLIC_PRIVY_APP_ID
+
 export function Providers({ children }: { children: React.ReactNode }) {
+  // If no Privy app ID is available (during build), just render children without providers
+  if (!privyAppId || privyAppId === "") {
+    return <>{children}</>
+  }
+
   return (
     <PrivyProvider
-      appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID || ""}
+      appId={privyAppId}
       config={{
         appearance: {
           theme: "light",
