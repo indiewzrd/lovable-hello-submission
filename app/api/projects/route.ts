@@ -15,7 +15,8 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    if (!db) {
+    // Return empty array if database is not available (during build)
+    if (!db || typeof db.select !== 'function') {
       return NextResponse.json([])
     }
     // Get projects with aggregated poll stats
@@ -49,7 +50,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    if (!db) {
+    // Return error if database is not available
+    if (!db || typeof db.insert !== 'function') {
       return NextResponse.json(
         { error: "Database not available" },
         { status: 503 }

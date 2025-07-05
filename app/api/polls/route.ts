@@ -5,7 +5,8 @@ import { desc, eq } from "drizzle-orm"
 
 export async function GET() {
   try {
-    if (!db) {
+    // Return empty array if database is not available (during build)
+    if (!db || typeof db.select !== 'function') {
       return NextResponse.json([])
     }
     const allPolls = await db

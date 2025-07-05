@@ -9,7 +9,8 @@ export async function GET(
 ) {
   const { id } = await context.params
   try {
-    if (!db) {
+    // Return error if database is not available (during build)
+    if (!db || typeof db.select !== 'function') {
       return NextResponse.json(
         { error: "Database not available" },
         { status: 503 }

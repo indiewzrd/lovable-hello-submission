@@ -9,7 +9,8 @@ export async function GET(
 ) {
   const { id } = await context.params
   try {
-    if (!db) {
+    // Return empty array if database is not available (during build)
+    if (!db || typeof db.select !== 'function') {
       return NextResponse.json([])
     }
     const projectPolls = await db
