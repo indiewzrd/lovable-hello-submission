@@ -3,7 +3,6 @@ import type { NextConfig } from "next"
 const nextConfig: NextConfig = {
   devIndicators: false,
   reactStrictMode: true,
-  swcMinify: true,
   experimental: {
     // Reduce build memory usage
     workerThreads: false,

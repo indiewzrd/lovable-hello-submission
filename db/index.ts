@@ -6,9 +6,10 @@ import { users, projects, polls } from "./schema"
 config({ path: ".env.local" })
 
 const databaseUrl = process.env.DATABASE_URL
-if (!databaseUrl && process.env.NODE_ENV === "production") {
-  throw new Error("DATABASE_URL is not set")
-}
+
+// During build time, we don't need database connection
+const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build' || 
+                   process.env.NODE_ENV === 'production' && !databaseUrl
 
 const dbSchema = {
   // tables
@@ -23,4 +24,4 @@ function initializeDb(url: string) {
   return drizzlePostgres(client, { schema: dbSchema })
 }
 
-export const db = databaseUrl ? initializeDb(databaseUrl) : null as any
+export const db = databaseUrl && !isBuildTime ? initializeDb(databaseUrl) : null as any
