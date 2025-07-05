@@ -23,7 +23,7 @@
     "test:contracts": "hardhat test",
     "compile": "hardhat compile",
     "deploy:local": "hardhat run scripts/deploy-all.js --network localhost",
-    "deploy:base-sepolia": "hardhat run scripts/deploy-all.ts --network baseSepolia",
+    "deploy:base-sepolia": "hardhat run scripts/deploy-base-sepolia.js --network baseSepolia",
     "node": "hardhat node"
   },
   "dependencies": {
