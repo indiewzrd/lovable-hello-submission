@@ -5,7 +5,7 @@ export default function CreatePollPage() {
   return (
     <div className="container max-w-4xl py-8">
       <h1 className="text-3xl font-bold mb-8">Create New Poll</h1>
-      <Suspense fallback={<div>Loading...</div>}>
+      <Suspense fallback={<div className="text-center">Loading poll form...</div>}>
         <CreatePollForm />
       </Suspense>
     </div>
