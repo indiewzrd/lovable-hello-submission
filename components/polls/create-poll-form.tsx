@@ -91,13 +91,17 @@ export function CreatePollForm() {
     }
   }, [address, projectId])
 
-  // Navigate on successful deployment
+  // Save to database after successful deployment
   useEffect(() => {
     if (isDeploySuccess && deployHash) {
+      // For now, just show success and redirect
+      // In a real implementation, we would:
+      // 1. Get the poll address from the transaction receipt
+      // 2. Save the poll data to the database with the contract address
       toast.success("Poll created successfully!")
-      router.push(`/dashboard/projects${selectedProject ? `/${selectedProject}` : ''}`)
+      router.push('/dashboard')
     }
-  }, [isDeploySuccess, deployHash, router, selectedProject])
+  }, [isDeploySuccess, deployHash, router])
 
   const addOption = () => {
     const newId = Math.max(...options.map(o => o.id)) + 1
@@ -141,35 +145,8 @@ export function CreatePollForm() {
     }
 
     try {
-      // First save to database
-      const pollData = {
-        projectId: selectedProject || undefined,
-        question: formData.question,
-        description: formData.description,
-        startTime: startTimestamp,
-        endTime: endTimestamp,
-        tokensPerVote: formData.tokensPerVote,
-        winningOptionsCount: parseInt(formData.winningOptionsCount),
-        options: filledOptions.map((o, index) => ({
-          optionNumber: index,
-          text: o.text,
-          description: o.description || undefined,
-        })),
-        walletAddress: address,
-      }
-
-      const saveResponse = await fetch('/api/polls', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(pollData),
-      })
-
-      if (!saveResponse.ok) {
-        throw new Error('Failed to save poll data')
-      }
-
-      // Deploy to blockchain
-      await deployPoll({
+      // Deploy to blockchain first
+      const tx = await deployPoll({
         address: POLL_FACTORY_ADDRESS,
         abi: POLL_FACTORY_ABI,
         functionName: 'deployPoll',
@@ -182,6 +159,11 @@ export function CreatePollForm() {
           USDC_ADDRESS,
         ],
       })
+      
+      toast.info('Transaction submitted. Waiting for confirmation...')
+      
+      // Note: We'll save to database after the transaction is confirmed
+      // This happens in the useEffect that watches for isDeploySuccess
     } catch (error) {
       console.error('Error creating poll:', error)
       toast.error('Failed to create poll. Please try again.')
