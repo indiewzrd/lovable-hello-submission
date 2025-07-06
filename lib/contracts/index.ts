@@ -10,6 +10,6 @@ export {
 export { 
   usePollFactory,
   usePoll,
-  useUSDCBalance,
+  useUSDC,
   useUSDCApproval 
 } from './hooks'

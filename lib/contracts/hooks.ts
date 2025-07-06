@@ -2,11 +2,9 @@ import { useReadContract, useWriteContract, useWaitForTransactionReceipt } from 
 import { parseUnits, formatUnits } from 'viem'
 import { baseSepolia } from 'viem/chains'
 import { contractAddresses, contractABIs } from './config'
-import { useToast } from '@/hooks/use-toast'
 
 // PollFactory hooks
 export function usePollFactory() {
-  const { toast } = useToast()
   const pollFactoryAddress = contractAddresses[baseSepolia.id].pollFactory
   
   // Read functions
@@ -58,11 +56,6 @@ export function usePollFactory() {
       return tx
     } catch (error) {
       console.error('Deploy poll error:', error)
-      toast({
-        title: 'Error',
-        description: 'Failed to deploy poll. Please try again.',
-        variant: 'destructive',
-      })
       throw error
     }
   }
@@ -105,7 +98,6 @@ export function useUSDC() {
 
 // Poll hooks
 export function usePoll(pollAddress?: `0x${string}`) {
-  const { toast } = useToast()
   
   // Read individual poll properties
   const { data: pollCreator } = useReadContract({
@@ -156,11 +148,7 @@ export function usePoll(pollAddress?: `0x${string}`) {
   
   const handleVote = async (optionNumber: number) => {
     if (!pollAddress) {
-      toast({
-        title: 'Error',
-        description: 'Poll address not provided',
-        variant: 'destructive',
-      })
+      console.error('Poll address not provided')
       return
     }
     
@@ -175,11 +163,6 @@ export function usePoll(pollAddress?: `0x${string}`) {
       return tx
     } catch (error) {
       console.error('Vote error:', error)
-      toast({
-        title: 'Error',
-        description: 'Failed to submit vote. Please try again.',
-        variant: 'destructive',
-      })
       throw error
     }
   }
@@ -202,7 +185,6 @@ export function usePoll(pollAddress?: `0x${string}`) {
 
 // USDC approval hook
 export function useUSDCApproval(spender?: `0x${string}`, amount?: string) {
-  const { toast } = useToast()
   const usdcAddress = contractAddresses[baseSepolia.id].usdc
   
   const { 
@@ -217,11 +199,7 @@ export function useUSDCApproval(spender?: `0x${string}`, amount?: string) {
   
   const handleApprove = async () => {
     if (!spender || !amount) {
-      toast({
-        title: 'Error',
-        description: 'Missing spender or amount',
-        variant: 'destructive',
-      })
+      console.error('Missing spender or amount')
       return
     }
     
@@ -236,11 +214,6 @@ export function useUSDCApproval(spender?: `0x${string}`, amount?: string) {
       return tx
     } catch (error) {
       console.error('Approve error:', error)
-      toast({
-        title: 'Error',
-        description: 'Failed to approve USDC. Please try again.',
-        variant: 'destructive',
-      })
       throw error
     }
   }
