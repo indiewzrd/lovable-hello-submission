@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { toast } from "sonner"
 import { useWallet } from "@/hooks/use-wallet"
 import { useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi"
-import { POLL_FACTORY_ABI, POLL_FACTORY_ADDRESS } from "@/lib/contracts/abis"
+import { POLL_FACTORY_ABI, POLL_FACTORY_ADDRESS } from "@/lib/contracts/contract-abis"
 import { Shield, Wallet, Settings, DollarSign, AlertCircle } from "lucide-react"
 
 export function AdminPanel() {

@@ -15,7 +15,7 @@ import { useWallet } from "@/hooks/use-wallet"
 import { parseUnits } from "viem"
 import { baseSepolia } from "viem/chains"
 import { useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
-import { POLL_FACTORY_ABI, POLL_FACTORY_ADDRESS, USDC_ADDRESS } from '@/lib/contracts/abis'
+import { POLL_FACTORY_ABI, POLL_FACTORY_ADDRESS, USDC_ADDRESS } from '@/lib/contracts/contract-abis'
 
 interface PollOption {
   id: number
