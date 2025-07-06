@@ -1,7 +1,5 @@
 import { baseSepolia } from 'viem/chains'
-import PollFactoryABI from './abis/PollFactory.json'
-import PollABI from './abis/Poll.json'
-import USDCABI from './abis/USDC.json'
+import { pollFactoryAbi, pollAbi, usdcAbi } from './abis'
 
 export const contractAddresses = {
   [baseSepolia.id]: {
@@ -11,9 +9,9 @@ export const contractAddresses = {
 } as const
 
 export const contractABIs = {
-  pollFactory: PollFactoryABI,
-  poll: PollABI,
-  usdc: USDCABI,
+  pollFactory: pollFactoryAbi,
+  poll: pollAbi,
+  usdc: usdcAbi,
 } as const
 
 export type SupportedChainId = keyof typeof contractAddresses
