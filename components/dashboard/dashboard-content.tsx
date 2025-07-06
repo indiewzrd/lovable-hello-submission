@@ -38,6 +38,13 @@ export function DashboardContent() {
     }
   }, [authenticated])
 
+  // Add a check for database connection
+  useEffect(() => {
+    if (!process.env.NEXT_PUBLIC_DATABASE_URL && polls.length === 0 && !loading) {
+      console.log('Note: Database connection not configured. Polls will not be displayed.')
+    }
+  }, [polls, loading])
+
   const fetchPolls = async () => {
     try {
       const response = await fetch('/api/polls')
