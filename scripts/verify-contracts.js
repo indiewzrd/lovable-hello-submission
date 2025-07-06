@@ -45,7 +45,7 @@ async function main() {
   console.log("- setFeePercentage(newFeePercentage): Change fee % (only admin, max 1000 = 10%)");
 
   console.log("\n=== Events (PollFactory) ===");
-  console.log("- PollDeployed(pollAddress, creator, startTime, endTime)");
+  console.log("- PollCreated(pollAddress, creator, startTime, endTime)");
   console.log("- AdminChanged(oldAdmin, newAdmin)");
   console.log("- RescueWalletChanged(oldWallet, newWallet)");
   console.log("- FeeWalletChanged(oldWallet, newWallet)");

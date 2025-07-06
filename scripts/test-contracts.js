@@ -86,7 +86,7 @@ async function main() {
     const event = receipt.logs.find(log => {
       try {
         const parsed = pollFactory.interface.parseLog(log);
-        return parsed.name === "PollDeployed";
+        return parsed.name === "PollCreated";
       } catch (e) {
         return false;
       }

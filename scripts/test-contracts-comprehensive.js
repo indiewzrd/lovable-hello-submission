@@ -135,7 +135,7 @@ async function main() {
     // Extract poll address from events
     const deployEvent = receipt.logs.find(log => {
       try {
-        return pollFactory.interface.parseLog(log).name === "PollDeployed";
+        return pollFactory.interface.parseLog(log).name === "PollCreated";
       } catch {
         return false;
       }

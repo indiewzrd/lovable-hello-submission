@@ -47,7 +47,7 @@
     - `_totalOptionsCount`: Total number of voting options
     - `_tokenAddress`: Address of the voting token (USDC on Base Sepolia: `0x036CbD53842c5426634e7929541eC2318f3dCF7e`)
   - Returns: Address of the deployed poll
-  - Emits: `PollDeployed` event
+  - Emits: `PollCreated` event
 
 #### Administrative Functions (Admin Only)
 - **`setAdmin(address _newAdmin)`**
@@ -72,7 +72,7 @@
   - Emits: `FeePercentageChanged` event
 
 ### Events
-- **`PollDeployed(address indexed pollAddress, address indexed creator, uint256 startTime, uint256 endTime)`**
+- **`PollCreated(address indexed pollAddress, address indexed creator, uint256 startTime, uint256 endTime)`**
 - **`AdminChanged(address indexed oldAdmin, address indexed newAdmin)`**
 - **`RescueWalletChanged(address indexed oldWallet, address indexed newWallet)`**
 - **`FeeWalletChanged(address indexed oldWallet, address indexed newWallet)`**
