@@ -3,7 +3,7 @@ import { projects } from "./projects"
 
 export const polls = pgTable("polls", {
   id: uuid("id").primaryKey().defaultRandom(),
-  projectId: uuid("project_id").notNull().references(() => projects.id),
+  projectId: uuid("project_id").references(() => projects.id),
   contractAddress: text("contract_address").unique(),
   question: text("question").notNull(),
   description: text("description"),

@@ -108,7 +108,7 @@ export async function POST(request: Request) {
     } = body
     
     // Validate required fields
-    if (!projectId || !contractAddress || !question || !options) {
+    if (!contractAddress || !question || !options) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
