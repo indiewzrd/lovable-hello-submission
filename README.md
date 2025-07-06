@@ -1,4 +1,4 @@
-https://x.com/indiewzrd - follow me on Twitter. Apart from launching a mainnet version of StakeDriven soon, I also plan to drop some nice read for builders/product managers/influencers.
+https://x.com/indiewzrd - follow me on Twitter. Apart from launching a mainnet version of StakeDriven.com soon, I also plan to drop some nice read for builders/product managers/influencers.
 
 
 # Stakedriven - Web3 Fundable Polls Platform
