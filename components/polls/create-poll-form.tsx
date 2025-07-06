@@ -15,9 +15,7 @@ import { useWallet } from "@/hooks/use-wallet"
 import { parseUnits } from "viem"
 import { baseSepolia } from "viem/chains"
 import { useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
-import PollFactoryABI from '@/lib/contracts/abis/PollFactory.json'
-
-const POLL_FACTORY_ADDRESS = '0xbAd1412E9F40ec01055f2CF7439c1391dF4373b6' as const
+import { POLL_FACTORY_ABI, POLL_FACTORY_ADDRESS, USDC_ADDRESS } from '@/lib/contracts/abis'
 
 interface PollOption {
   id: number
@@ -56,7 +54,7 @@ export function CreatePollForm() {
   // Contract interactions
   const { data: feePercentage } = useReadContract({
     address: POLL_FACTORY_ADDRESS,
-    abi: PollFactoryABI,
+    abi: POLL_FACTORY_ABI,
     functionName: 'feePercentage',
   })
   
@@ -164,7 +162,7 @@ export function CreatePollForm() {
       // Deploy to blockchain
       await deployPoll({
         address: POLL_FACTORY_ADDRESS,
-        abi: PollFactoryABI,
+        abi: POLL_FACTORY_ABI,
         functionName: 'deployPoll',
         args: [
           BigInt(startTimestamp),
@@ -172,7 +170,7 @@ export function CreatePollForm() {
           parseUnits(formData.tokensPerVote, 6), // USDC has 6 decimals
           BigInt(formData.winningOptionsCount),
           BigInt(filledOptions.length),
-          '0x036CbD53842c5426634e7929541eC2318f3dCF7e', // USDC address
+          USDC_ADDRESS,
         ],
       })
     } catch (error) {
