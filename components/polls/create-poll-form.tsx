@@ -15,7 +15,74 @@ import { useWallet } from "@/hooks/use-wallet"
 import { parseUnits } from "viem"
 import { baseSepolia } from "viem/chains"
 import { useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
-import { POLL_FACTORY_ABI, POLL_FACTORY_ADDRESS, USDC_ADDRESS } from '@/lib/contracts/contract-abis'
+// Embedded ABIs to avoid import issues
+const POLL_FACTORY_ADDRESS = '0xbAd1412E9F40ec01055f2CF7439c1391dF4373b6' as const
+const USDC_ADDRESS = '0x036CbD53842c5426634e7929541eC2318f3dCF7e' as const
+
+const POLL_FACTORY_ABI = [
+  {
+    "inputs": [],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_startTime",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_endTime",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_tokensPerVote",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_winningOptionsCount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_totalOptionsCount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "_tokenAddress",
+        "type": "address"
+      }
+    ],
+    "name": "deployPoll",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "feePercentage",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+] as const
 
 interface PollOption {
   id: number

@@ -10,7 +10,40 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { toast } from "sonner"
 import { useWallet } from "@/hooks/use-wallet"
 import { useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi"
-import { POLL_FACTORY_ABI, POLL_FACTORY_ADDRESS } from "@/lib/contracts/contract-abis"
+// Embedded constants to avoid import issues
+const POLL_FACTORY_ADDRESS = '0xbAd1412E9F40ec01055f2CF7439c1391dF4373b6' as const
+
+const POLL_FACTORY_ABI = [
+  {
+    "inputs": [],
+    "name": "feePercentage",
+    "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "globalAdmin",
+    "outputs": [{"internalType": "address", "name": "", "type": "address"}],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{"internalType": "uint256", "name": "_feePercentage", "type": "uint256"}],
+    "name": "setFeePercentage",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [{"internalType": "address", "name": "_globalAdmin", "type": "address"}],
+    "name": "setGlobalAdmin",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+] as const
+
 import { Shield, Wallet, Settings, DollarSign, AlertCircle } from "lucide-react"
 
 export function AdminPanel() {
