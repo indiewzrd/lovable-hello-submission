@@ -10,5 +10,10 @@
     "app/api/projects/route.ts": {
       "maxDuration": 30
     }
+  },
+  "build": {
+    "env": {
+      "FORCE_REBUILD": "1"
+    }
   }
 }
