@@ -8,8 +8,8 @@ import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import { useWallet } from "@/hooks/use-wallet"
-import { usePoll, useUSDCApproval } from "@/lib/contracts/hooks"
-import { contractAddresses, contractABIs } from "@/lib/contracts/config"
+import { usePoll, useUSDCApproval } from "@/lib/contracts"
+import { contractAddresses, contractABIs } from "@/lib/contracts"
 import { useReadContract } from "wagmi"
 import { formatUnits } from "viem"
 import { Clock, Users, DollarSign, CheckCircle } from "lucide-react"
@@ -19,6 +19,20 @@ import { baseSepolia } from "viem/chains"
 interface VotingResult {
   option: number
   votes: bigint
+}
+
+// Placeholder ClaimSection component
+function ClaimSection({ pollAddress, pollCreator, hasVoted }: { 
+  pollAddress: Address
+  pollCreator: Address | undefined
+  hasVoted: boolean | undefined 
+}) {
+  return (
+    <Card className="p-6">
+      <h2 className="text-xl font-semibold mb-4">Claim Rewards</h2>
+      <p className="text-muted-foreground">Claim functionality coming soon...</p>
+    </Card>
+  )
 }
 
 export default function PollPage() {

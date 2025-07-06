@@ -12,8 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner"
 import { Plus, Trash2 } from "lucide-react"
 import { useWallet } from "@/hooks/use-wallet"
-import { usePollFactory } from "@/lib/contracts/hooks"
-import { contractAddresses } from "@/lib/contracts/config"
+import { usePollFactory } from "@/lib/contracts"
+import { contractAddresses } from "@/lib/contracts"
 import { parseUnits } from "viem"
 import { baseSepolia } from "viem/chains"
 

@@ -11,7 +11,7 @@ import { useRouter } from "next/navigation"
 import { formatDistanceToNow } from "@/lib/utils"
 import { User, History, DollarSign, TrendingUp, Award, Clock, CheckCircle, XCircle } from "lucide-react"
 import { useReadContract } from "wagmi"
-import { contractABIs } from "@/lib/contracts/config"
+import { contractABIs } from "@/lib/contracts"
 import { formatUnits } from "viem"
 
 type VoteRecord = {

@@ -12,7 +12,7 @@ import { Plus, ArrowRight, Clock, Users, DollarSign, TrendingUp } from "lucide-r
 import { formatDistanceToNow } from "@/lib/utils"
 import { useReadContract } from "wagmi"
 import { formatUnits } from "viem"
-import { contractABIs } from "@/lib/contracts/config"
+import { contractABIs } from "@/lib/contracts"
 
 type Poll = {
   id: string
