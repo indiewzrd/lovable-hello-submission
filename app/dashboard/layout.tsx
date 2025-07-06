@@ -24,6 +24,9 @@ export default function DashboardLayout({
               <Link href="/dashboard/polls/create" className="text-sm text-muted-foreground hover:text-foreground">
                 Create Poll
               </Link>
+              <Link href="/explore" className="text-sm text-muted-foreground hover:text-foreground">
+                My Polls
+              </Link>
               <Link href="/dashboard/projects" className="text-sm text-muted-foreground hover:text-foreground">
                 My Projects
               </Link>

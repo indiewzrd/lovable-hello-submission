@@ -9,21 +9,16 @@ export default function LandingPage() {
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-20 text-center">
         <h1 className="text-5xl font-bold mb-6">
-          Crowdsource Decisions with Staked Votes
+          Crowdfund your new product or feature development
         </h1>
         <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-          Launch polls where community members vote with USDC. Winners take all. 
-          Build products your users actually want.
+          Launch polls where your community vote on what to build next. 
+          You get funds of winning options. Build products your users really want.
         </p>
         <div className="flex gap-4 justify-center">
           <Button size="lg" asChild>
-            <Link href="/explore">
-              Explore Polls <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
-          <Button size="lg" variant="outline" asChild>
             <Link href="/dashboard">
-              Launch a Poll
+              Launch a Poll <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
         </div>
@@ -32,18 +27,31 @@ export default function LandingPage() {
       {/* Features Section */}
       <section className="container mx-auto px-4 py-20">
         <h2 className="text-3xl font-bold text-center mb-12">
-          Why Choose Stakedriven?
+          Why to use StakeDriven?
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <Card>
             <CardHeader>
-              <DollarSign className="h-12 w-12 mb-4 text-primary" />
-              <CardTitle>Skin in the Game</CardTitle>
+              <BarChart3 className="h-12 w-12 mb-4 text-primary" />
+              <CardTitle>Reliable Feedback</CardTitle>
             </CardHeader>
             <CardContent>
               <CardDescription>
-                Voters commit real funds (USDC) to their choices, ensuring only serious 
-                participants influence decisions.
+                Get genuine insights on feature prioritization from users who put real 
+                money behind their preferences.
+              </CardDescription>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <DollarSign className="h-12 w-12 mb-4 text-primary" />
+              <CardTitle>Alternative to VC Funding</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CardDescription>
+                Crowdfund your new product development and give back to your community 
+                when you are ready.
               </CardDescription>
             </CardContent>
           </Card>
@@ -51,25 +59,11 @@ export default function LandingPage() {
           <Card>
             <CardHeader>
               <Users className="h-12 w-12 mb-4 text-primary" />
-              <CardTitle>Community Driven</CardTitle>
+              <CardTitle>Increased Engagement</CardTitle>
             </CardHeader>
             <CardContent>
               <CardDescription>
-                Let your community guide product development. Build features that users 
-                are literally willing to pay for.
-              </CardDescription>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <Shield className="h-12 w-12 mb-4 text-primary" />
-              <CardTitle>Fully On-Chain</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <CardDescription>
-                All votes and funds are managed by smart contracts on Base. 
-                Transparent, verifiable, and trustless.
+                Boost community engagement by allowing partial input on the product roadmap.
               </CardDescription>
             </CardContent>
           </Card>
@@ -88,7 +82,7 @@ export default function LandingPage() {
             </div>
             <h3 className="font-semibold mb-2">Create a Poll</h3>
             <p className="text-sm text-muted-foreground">
-              Set up your question, options, and USDC amount per vote
+              Set up poll options, duration, and token amount per vote
             </p>
           </div>
 
@@ -98,7 +92,7 @@ export default function LandingPage() {
             </div>
             <h3 className="font-semibold mb-2">Community Votes</h3>
             <p className="text-sm text-muted-foreground">
-              Users vote by staking USDC on their preferred option
+              Users vote by staking funds on preferred option, and earn yield
             </p>
           </div>
 
@@ -149,7 +143,7 @@ export default function LandingPage() {
             </CardHeader>
             <CardContent>
               <CardDescription>
-                Make governance decisions with economic stakes to prevent spam
+                Make governance decisions with economic stakes, and fund your next initiative
               </CardDescription>
             </CardContent>
           </Card>
@@ -157,11 +151,11 @@ export default function LandingPage() {
           <Card>
             <CardHeader>
               <BarChart3 className="h-8 w-8 mb-2 text-primary" />
-              <CardTitle className="text-lg">NFT Projects</CardTitle>
+              <CardTitle className="text-lg">Memecoin/NFT/Influencers</CardTitle>
             </CardHeader>
             <CardContent>
               <CardDescription>
-                Let holders vote on roadmap priorities with real value at stake
+                Let followers fund your next big moves
               </CardDescription>
             </CardContent>
           </Card>
@@ -174,7 +168,7 @@ export default function LandingPage() {
           Ready to Get Started?
         </h2>
         <p className="text-xl text-muted-foreground mb-8">
-          Join the future of community-driven decision making
+          Join the future of stake-driven development
         </p>
         <Button size="lg" asChild>
           <Link href="/dashboard">
