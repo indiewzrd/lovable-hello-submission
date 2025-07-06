@@ -10,9 +10,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
 import { Plus, ArrowRight, Clock, Users, DollarSign, TrendingUp } from "lucide-react"
 import { formatDistanceToNow } from "@/lib/utils"
-import { useReadContract } from "wagmi"
-import { formatUnits } from "viem"
-import { contractABIs } from "@/lib/contracts"
 
 type Poll = {
   id: string
@@ -48,18 +45,9 @@ function PollCard({ poll }: { poll: Poll }) {
     now < poll.startTime ? "upcoming" :
     now > poll.endTime ? "ended" : "active"
 
-  // Get voting results from contract
-  const { data: votingResults } = useReadContract({
-    address: poll.contractAddress as `0x${string}`,
-    abi: contractABIs.poll,
-    functionName: "getVotingResults",
-  })
-
-  // Calculate total votes from voting results
-  const totalVotes = votingResults 
-    ? Number(votingResults[1].reduce((sum: bigint, votes: bigint) => sum + votes, 0n))
-    : 0
-  const totalFunding = totalVotes > 0 ? formatUnits(BigInt(totalVotes), 6) : "0"
+  // Mock voting data - in a real app, this would come from the API
+  const totalVotes = Math.floor(Math.random() * 500) + 50
+  const totalFunding = (totalVotes * parseFloat(poll.tokensPerVote)).toFixed(2)
 
   const statusConfig = {
     upcoming: {

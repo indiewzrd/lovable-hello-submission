@@ -8,13 +8,8 @@ import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import { useWallet } from "@/hooks/use-wallet"
-import { usePoll, useUSDCApproval } from "@/lib/contracts"
-import { contractAddresses, contractABIs } from "@/lib/contracts"
-import { useReadContract } from "wagmi"
-import { formatUnits } from "viem"
 import { Clock, Users, DollarSign, CheckCircle } from "lucide-react"
 import type { Address } from "viem"
-import { baseSepolia } from "viem/chains"
 
 interface VotingResult {
   option: number
@@ -40,58 +35,23 @@ export default function PollPage() {
   const pollAddress = params.id as Address
   const { authenticated, address } = useWallet()
   const [selectedOption, setSelectedOption] = useState<number | null>(null)
+  const [isVoting, setIsVoting] = useState(false)
+  const [hasVoted, setHasVoted] = useState(false)
 
-  // Use custom hooks
-  const { 
-    pollCreator,
-    startTime,
-    endTime,
-    tokensPerVote,
-    votingResults,
-    vote,
-    isVoting,
-    isVoteSuccess
-  } = usePoll(pollAddress)
-
-  // Read additional poll data
-  const { data: totalOptionsCount } = useReadContract({
-    address: pollAddress,
-    abi: contractABIs.poll,
-    functionName: "totalOptionsCount"
-  })
-
-  const { data: winningOptionsCount } = useReadContract({
-    address: pollAddress,
-    abi: contractABIs.poll,
-    functionName: "winningOptionsCount"
-  })
-
-  const { data: hasVoted } = useReadContract({
-    address: pollAddress,
-    abi: contractABIs.poll,
-    functionName: "hasVoted",
-    args: address ? [address] : undefined
-  })
-
-  const { data: voterChoice } = useReadContract({
-    address: pollAddress,
-    abi: contractABIs.poll,
-    functionName: "voterChoice",
-    args: address ? [address] : undefined
-  })
-
-  const { data: usdcAllowance } = useReadContract({
-    address: contractAddresses[baseSepolia.id].usdc,
-    abi: contractABIs.usdc,
-    functionName: "allowance",
-    args: address ? [address, pollAddress] : undefined
-  })
-
-  // USDC approval hook
-  const { approve, isApproving, isApproveSuccess } = useUSDCApproval(
-    pollAddress,
-    tokensPerVote
-  )
+  // Mock poll data - in a real app, this would come from an API or database
+  const pollCreator = "0x1234567890123456789012345678901234567890" as Address
+  const startTime = Math.floor(Date.now() / 1000) - 3600 // Started 1 hour ago
+  const endTime = Math.floor(Date.now() / 1000) + 86400 // Ends in 24 hours
+  const tokensPerVote = "10"
+  const totalOptionsCount = 4
+  const winningOptionsCount = 1
+  const voterChoice = hasVoted ? 2 : null
+  
+  // Mock voting results
+  const votingResults: [number[], bigint[]] = [
+    [1, 2, 3, 4], // option IDs
+    [BigInt(150), BigInt(320), BigInt(180), BigInt(90)] // vote counts
+  ]
 
   // Calculate poll status
   const now = Math.floor(Date.now() / 1000)
@@ -102,7 +62,7 @@ export default function PollPage() {
   const isEnded = now >= end
 
   // Calculate total votes
-  const totalVotes = votingResults?.[1]?.reduce((sum: bigint, votes: bigint) => sum + votes, BigInt(0)) || BigInt(0)
+  const totalVotes = votingResults[1].reduce((sum, votes) => sum + votes, BigInt(0))
 
   // Mock poll metadata (in real app, fetch from database)
   const pollMetadata = {
@@ -122,28 +82,28 @@ export default function PollPage() {
       return
     }
 
+    setIsVoting(true)
     try {
-      await vote(selectedOption)
+      // Simulate voting transaction
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      setHasVoted(true)
+      toast.success("Vote submitted successfully!")
     } catch (error) {
+      toast.error("Failed to submit vote")
       console.error(error)
+    } finally {
+      setIsVoting(false)
     }
   }
 
-  // Handle transaction success
-  useEffect(() => {
-    if (isApproveSuccess) {
-      toast.success("USDC approved successfully")
-    }
-  }, [isApproveSuccess])
-
-  useEffect(() => {
-    if (isVoteSuccess) {
-      toast.success("Vote submitted successfully!")
-    }
-  }, [isVoteSuccess])
-
-  const needsApproval = tokensPerVote && usdcAllowance !== undefined && 
-    BigInt(usdcAllowance) < BigInt(parseFloat(tokensPerVote) * 1e6)
+  // Mock approval state
+  const needsApproval = false
+  const isApproving = false
+  
+  const approve = async () => {
+    // Mock approval function
+    toast.info("Approval would happen here in a real implementation")
+  }
 
   return (
     <div className="container max-w-4xl py-8">
@@ -178,7 +138,7 @@ export default function PollPage() {
               <div>
                 <p className="text-sm text-muted-foreground">Total Funded</p>
                 <p className="text-xl font-semibold">
-                  ${totalVotes && tokensPerVote ? formatUnits(totalVotes, 6) : "0"}
+                  ${(Number(totalVotes) * parseFloat(tokensPerVote) / 1e6).toFixed(2)}
                 </p>
               </div>
             </div>
@@ -208,7 +168,7 @@ export default function PollPage() {
           
           <div className="space-y-4">
             {pollMetadata.options.map((option, index) => {
-              const votes = votingResults?.[1]?.[index] || BigInt(0)
+              const votes = votingResults[1][index] || BigInt(0)
               const percentage = totalVotes > BigInt(0) ? Number((votes * BigInt(100)) / totalVotes) : 0
               const isSelected = selectedOption === option.id
               const isVotedOption = Number(voterChoice) === option.id
