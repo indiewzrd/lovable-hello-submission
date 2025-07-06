@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -33,6 +33,15 @@ export function CreatePollForm() {
   const searchParams = useSearchParams()
   const projectId = searchParams.get("projectId")
   const { address, isConnected } = useWallet()
+  
+  // Add error boundary
+  if (!POLL_FACTORY_ABI || !POLL_FACTORY_ADDRESS) {
+    return (
+      <div className="text-red-500">
+        Error: Contract configuration not loaded properly
+      </div>
+    )
+  }
   
   const [projects, setProjects] = useState<Project[]>([])
   const [selectedProject, setSelectedProject] = useState<string>("")
@@ -180,6 +189,19 @@ export function CreatePollForm() {
   }
 
   const isLoading = isDeploying || isDeployConfirming
+
+  if (!isConnected) {
+    return (
+      <Card className="p-6">
+        <CardContent className="text-center">
+          <p className="text-lg mb-4">Please connect your wallet to create a poll</p>
+          <p className="text-sm text-muted-foreground">
+            You need to connect your wallet to interact with the smart contracts
+          </p>
+        </CardContent>
+      </Card>
+    )
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
