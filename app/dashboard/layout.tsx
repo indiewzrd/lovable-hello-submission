@@ -27,6 +27,12 @@ export default function DashboardLayout({
               <Link href="/dashboard/projects" className="text-sm text-muted-foreground hover:text-foreground">
                 My Projects
               </Link>
+              <Link href="/dashboard/account" className="text-sm text-muted-foreground hover:text-foreground">
+                Account
+              </Link>
+              <Link href="/dashboard/admin" className="text-sm text-muted-foreground hover:text-foreground">
+                Admin
+              </Link>
             </nav>
           </div>
           <ConnectButton />
