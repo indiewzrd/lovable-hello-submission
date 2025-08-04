@@ -88,11 +88,11 @@ export function ClaimSection({
   const { isLoading: isClaimingRefund } = useWaitForTransactionReceipt({ hash: claimRefundHash })
   const { isLoading: isClaimingFee } = useWaitForTransactionReceipt({ hash: claimFeeHash })
 
-  // Check if user's vote is a winner
-  const isWinner = Boolean(voterChoice && winningOptions && 
+  // Check if user's vote is a winner - add type assertions to avoid unknown types
+  const isWinner: boolean = Boolean(voterChoice && winningOptions && 
     (winningOptions as bigint[]).some((option: bigint) => Number(option) === Number(voterChoice)))
 
-  const isCreator = Boolean(address && pollCreator && 
+  const isCreator: boolean = Boolean(address && pollCreator && 
     address.toLowerCase() === pollCreator.toLowerCase())
 
   const handleCalculateWinners = async () => {
@@ -217,7 +217,7 @@ export function ClaimSection({
           </div>
 
           {/* Creator claim */}
-          {!!isCreator && !!creatorClaimed === false && !!winnersCalculated && (
+          {isCreator && !creatorClaimed && winnersCalculated && (
             <div className="p-4 border rounded-lg space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -240,7 +240,7 @@ export function ClaimSection({
           )}
 
           {/* Voter refund */}
-          {!!hasVoted && !isWinner && !!hasClaimedRefund === false && !!winnersCalculated && (
+          {hasVoted && !isWinner && !hasClaimedRefund && winnersCalculated && (
             <div className="p-4 border rounded-lg space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
