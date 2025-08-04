@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { toast } from "sonner"
 import { useWallet } from "@/hooks/use-wallet"
-import { useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi"
+import { useReadContract, useWriteContract, useWaitForTransactionReceipt } from "@/lib/wagmi-mocks"
 // Embedded constants to avoid import issues
 const POLL_FACTORY_ADDRESS = '0xbAd1412E9F40ec01055f2CF7439c1391dF4373b6' as const
 
@@ -73,7 +73,7 @@ export function AdminPanel() {
   const { isLoading: isSettingAdmin } = useWaitForTransactionReceipt({ hash: setAdminHash })
 
   // Check if current user is admin
-  const isAdmin = address && globalAdmin && address.toLowerCase() === globalAdmin.toLowerCase()
+  const isAdmin = address && globalAdmin && address.toLowerCase() === (globalAdmin as string).toLowerCase()
 
   useEffect(() => {
     if (feePercentage) {

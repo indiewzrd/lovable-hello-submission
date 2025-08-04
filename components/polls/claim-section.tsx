@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2, Trophy, DollarSign, AlertCircle, CheckCircle } from "lucide-react"
-import { useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi"
+import { useReadContract, useWriteContract, useWaitForTransactionReceipt } from "@/lib/wagmi-mocks"
 import { formatUnits } from "viem"
 import { pollAbi } from "@/lib/contracts/abis"
 import { toast } from "sonner"
@@ -174,15 +174,15 @@ export function ClaimSection({
   // Explicitly typed boolean conditions for JSX rendering with proper casting
   const shouldShowCreatorClaim: boolean = Boolean(
     isCreator && 
-    (creatorClaimed as boolean) === false && 
-    (winnersCalculated as boolean) === true
+    Boolean(creatorClaimed) === false && 
+    Boolean(winnersCalculated) === true
   )
   
   const shouldShowVoterRefund: boolean = Boolean(
     hasVoted === true && 
     !isWinner && 
-    (hasClaimedRefund as boolean) === false && 
-    (winnersCalculated as boolean) === true
+    Boolean(hasClaimedRefund) === false && 
+    Boolean(winnersCalculated) === true
   )
 
   const handleCalculateWinners = async () => {
@@ -298,11 +298,11 @@ export function ClaimSection({
           <div>
             <p className="text-sm text-muted-foreground mb-2">Winning Options:</p>
             <div className="flex gap-2">
-              {(winningOptions as bigint[])?.map((option: bigint) => (
+              {(winningOptions && Array.isArray(winningOptions)) ? winningOptions.map((option: bigint) => (
                 <Badge key={option.toString()} variant="default">
                   Option {option.toString()}
                 </Badge>
-              ))}
+              )) : null}
             </div>
           </div>
 

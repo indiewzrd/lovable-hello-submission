@@ -1,12 +1,12 @@
 "use client"
 
-// Mock wallet hook for development when Privy isn't configured
+// Mock wallet hook for development when external services aren't configured
 export function useWallet() {
   return {
     ready: true,
     authenticated: false,
-    login: () => Promise.resolve(),
-    logout: () => Promise.resolve(),
+    login: async () => {},
+    logout: async () => {},
     user: null,
     address: undefined as string | undefined,
     isConnected: false,
