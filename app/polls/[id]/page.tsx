@@ -32,7 +32,7 @@ function ClaimSection({ pollAddress, pollCreator, hasVoted }: {
 
 export default function PollPage() {
   const params = useParams()
-  const pollAddress = params.id as Address
+  const pollAddress = params?.id as Address
   const { authenticated, address } = useWallet()
   const [selectedOption, setSelectedOption] = useState<number | null>(null)
   const [isVoting, setIsVoting] = useState(false)

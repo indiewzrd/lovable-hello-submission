@@ -98,7 +98,7 @@ type Project = {
 export function CreatePollForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const projectId = searchParams.get("projectId")
+  const projectId = searchParams?.get("project")
   const { address, isConnected } = useWallet()
   
   // Add error boundary

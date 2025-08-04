@@ -20,7 +20,7 @@ export function ScrollIndicator({
   const pathname = usePathname()
 
   // Check if current path is enabled
-  const isEnabled = enabledPaths.includes(pathname)
+  const isEnabled = pathname ? enabledPaths.includes(pathname) : false
 
   useEffect(() => {
     if (!isEnabled) {

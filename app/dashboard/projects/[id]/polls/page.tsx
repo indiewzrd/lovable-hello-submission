@@ -150,7 +150,7 @@ function PollCard({ poll }: { poll: Poll }) {
 export default function ProjectPollsPage() {
   const params = useParams()
   const router = useRouter()
-  const projectId = params.id as string
+  const projectId = params?.id as string
   
   const [project, setProject] = useState<Project | null>(null)
   const [polls, setPolls] = useState<Poll[]>([])

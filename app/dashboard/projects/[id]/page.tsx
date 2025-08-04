@@ -48,7 +48,7 @@ type PollStatus = "upcoming" | "active" | "ended"
 export default function ProjectDetailsPage() {
   const params = useParams()
   const router = useRouter()
-  const projectId = params.id as string
+  const projectId = params?.id as string
   const { address } = useWallet()
   
   const [project, setProject] = useState<Project | null>(null)
