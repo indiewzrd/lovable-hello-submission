@@ -44,6 +44,18 @@ const config: Config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        "brand-primary": {
+          DEFAULT: "var(--brand-primary)",
+          foreground: "var(--brand-primary-foreground)",
+          hover: "var(--brand-primary-hover)",
+        },
+        "brand-secondary": {
+          DEFAULT: "var(--brand-secondary)",
+          hover: "var(--brand-secondary-hover)",
+        },
+        "brand-accent": {
+          DEFAULT: "var(--brand-accent)",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
