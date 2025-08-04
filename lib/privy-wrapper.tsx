@@ -38,10 +38,6 @@ export function PrivyWrapper({ children }: { children: React.ReactNode }) {
             createOnLogin: "users-without-wallets"
           }
         }}
-        onError={(error) => {
-          console.error("Privy error:", error)
-          setError(error.message)
-        }}
       >
         {error ? (
           <div className="p-4 text-red-500">

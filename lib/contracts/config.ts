@@ -1,0 +1,13 @@
+// Contract configuration
+export const CONTRACT_CONFIG = {
+  POLL_FACTORY_ADDRESS: process.env.NEXT_PUBLIC_POLL_FACTORY_ADDRESS || '',
+  USDC_ADDRESS: process.env.NEXT_PUBLIC_USDC_ADDRESS || '',
+  CHAIN_ID: process.env.NEXT_PUBLIC_CHAIN_ID ? parseInt(process.env.NEXT_PUBLIC_CHAIN_ID) : 8453,
+}
+
+// Base Sepolia testnet configuration
+export const BASE_SEPOLIA_CONFIG = {
+  POLL_FACTORY_ADDRESS: '0x742d35Cc6160D13D9aBa7b9e19BC21e0c5Eb6F5D',
+  USDC_ADDRESS: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
+  CHAIN_ID: 84532,
+}

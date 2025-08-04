@@ -3,6 +3,6 @@ import PollFactoryABI from './PollFactory.json'
 import PollABI from './Poll.json'
 import USDCABI from './USDC.json'
 
-export const pollFactoryAbi = PollFactoryABI as const
-export const pollAbi = PollABI as const
-export const usdcAbi = USDCABI as const
+export const pollFactoryAbi = PollFactoryABI
+export const pollAbi = PollABI
+export const usdcAbi = USDCABI

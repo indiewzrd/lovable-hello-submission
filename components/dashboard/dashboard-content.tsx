@@ -177,7 +177,7 @@ export function DashboardContent() {
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
                         <span className="flex items-center gap-1">
                           <Clock className="h-4 w-4" />
-                          Ends {formatDistanceToNow(new Date(poll.endTime), { addSuffix: true })}
+                          Ends {formatDistanceToNow(new Date(poll.endTime))}
                         </span>
                         <span>{poll.options.length} options</span>
                         <span>{poll.tokensPerVote} USDC per vote</span>

@@ -8,7 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2, Trophy, DollarSign, AlertCircle, CheckCircle } from "lucide-react"
 import { useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi"
 import { formatUnits } from "viem"
-import { contractABIs } from "@/lib/contracts/config"
+import { pollAbi } from "@/lib/contracts/abis"
 import { toast } from "sonner"
 import { useWallet } from "@/hooks/use-wallet"
 
@@ -29,55 +29,52 @@ export function ClaimSection({
   // Read contract data
   const { data: winnersCalculated } = useReadContract({
     address: pollAddress,
-    abi: contractABIs.poll,
+    abi: pollAbi,
     functionName: "winnersCalculated"
   })
 
   const { data: winningOptions } = useReadContract({
     address: pollAddress,
-    abi: contractABIs.poll,
-    functionName: "getWinningOptions",
-    enabled: !!winnersCalculated
+    abi: pollAbi,
+    functionName: "getWinningOptions"
   })
 
   const { data: voterChoice } = useReadContract({
     address: pollAddress,
-    abi: contractABIs.poll,
+    abi: pollAbi,
     functionName: "voterChoice",
     args: address ? [address] : undefined
   })
 
   const { data: hasClaimedRefund } = useReadContract({
     address: pollAddress,
-    abi: contractABIs.poll,
+    abi: pollAbi,
     functionName: "hasClaimedRefund",
     args: address ? [address] : undefined
   })
 
   const { data: creatorClaimed } = useReadContract({
     address: pollAddress,
-    abi: contractABIs.poll,
+    abi: pollAbi,
     functionName: "creatorClaimed"
   })
 
   const { data: feeClaimed } = useReadContract({
     address: pollAddress,
-    abi: contractABIs.poll,
+    abi: pollAbi,
     functionName: "feeClaimed"
   })
 
   const { data: winningAmount } = useReadContract({
     address: pollAddress,
-    abi: contractABIs.poll,
-    functionName: "winningAmount",
-    enabled: !!winnersCalculated
+    abi: pollAbi,
+    functionName: "winningAmount"
   })
 
   const { data: feeAmount } = useReadContract({
     address: pollAddress,
-    abi: contractABIs.poll,
-    functionName: "feeAmount",
-    enabled: !!winnersCalculated
+    abi: pollAbi,
+    functionName: "feeAmount"
   })
 
   // Write contracts
@@ -92,17 +89,17 @@ export function ClaimSection({
   const { isLoading: isClaimingFee } = useWaitForTransactionReceipt({ hash: claimFeeHash })
 
   // Check if user's vote is a winner
-  const isWinner = voterChoice && winningOptions && 
-    (winningOptions as bigint[]).some((option: bigint) => Number(option) === Number(voterChoice))
+  const isWinner = Boolean(voterChoice && winningOptions && 
+    (winningOptions as bigint[]).some((option: bigint) => Number(option) === Number(voterChoice)))
 
-  const isCreator = address && pollCreator && 
-    address.toLowerCase() === pollCreator.toLowerCase()
+  const isCreator = Boolean(address && pollCreator && 
+    address.toLowerCase() === pollCreator.toLowerCase())
 
   const handleCalculateWinners = async () => {
     try {
       calculateWinners({
         address: pollAddress,
-        abi: contractABIs.poll,
+        abi: pollAbi,
         functionName: "calculateWinners"
       })
     } catch (error) {
@@ -116,7 +113,7 @@ export function ClaimSection({
     try {
       claimWinningFunds({
         address: pollAddress,
-        abi: contractABIs.poll,
+        abi: pollAbi,
         functionName: "claimWinningFunds"
       })
     } catch (error) {
@@ -130,7 +127,7 @@ export function ClaimSection({
     try {
       claimRefund({
         address: pollAddress,
-        abi: contractABIs.poll,
+        abi: pollAbi,
         functionName: "claimNonWinningRefund"
       })
     } catch (error) {
@@ -144,7 +141,7 @@ export function ClaimSection({
     try {
       claimFee({
         address: pollAddress,
-        abi: contractABIs.poll,
+        abi: pollAbi,
         functionName: "claimFee"
       })
     } catch (error) {
@@ -220,7 +217,7 @@ export function ClaimSection({
           </div>
 
           {/* Creator claim */}
-          {isCreator && !creatorClaimed && (
+          {!!isCreator && !!creatorClaimed === false && !!winnersCalculated && (
             <div className="p-4 border rounded-lg space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -228,7 +225,7 @@ export function ClaimSection({
                   <span className="font-medium">Creator Rewards</span>
                 </div>
                 <span className="text-sm font-semibold">
-                  {winningAmount && feeAmount ? formatUnits(winningAmount - feeAmount, 6) : "0"} USDC
+                  {winningAmount && feeAmount ? formatUnits(BigInt(winningAmount as any) - BigInt(feeAmount as any), 6) : "0"} USDC
                 </span>
               </div>
               <Button
@@ -243,7 +240,7 @@ export function ClaimSection({
           )}
 
           {/* Voter refund */}
-          {hasVoted && !isWinner && !hasClaimedRefund && (
+          {!!hasVoted && !isWinner && !!hasClaimedRefund === false && !!winnersCalculated && (
             <div className="p-4 border rounded-lg space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
