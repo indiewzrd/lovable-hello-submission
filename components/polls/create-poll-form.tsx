@@ -14,7 +14,7 @@ import { Plus, Trash2 } from "lucide-react"
 import { useWallet } from "@/hooks/use-wallet"
 import { parseUnits } from "viem"
 import { baseSepolia } from "viem/chains"
-import { useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
+import { useReadContract, useWriteContract, useWaitForTransactionReceipt } from '@/lib/wagmi-mocks'
 // Embedded ABIs to avoid import issues
 const POLL_FACTORY_ADDRESS = '0xbAd1412E9F40ec01055f2CF7439c1391dF4373b6' as const
 const USDC_ADDRESS = '0x036CbD53842c5426634e7929541eC2318f3dCF7e' as const

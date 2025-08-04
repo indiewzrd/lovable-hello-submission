@@ -12,7 +12,7 @@ import { toast } from "sonner"
 import { Plus, Trash2, ArrowLeft, ArrowRight, CheckCircle, Clock, Users, Coins } from "lucide-react"
 import { useWallet } from "@/hooks/use-wallet"
 import { parseUnits } from "viem"
-import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
+import { useWriteContract, useWaitForTransactionReceipt } from '@/lib/wagmi-mocks'
 import { pollFactoryAbi } from '@/lib/contracts/abis'
 import { BASE_SEPOLIA_CONFIG } from '@/lib/contracts/config'
 

@@ -57,6 +57,10 @@ const config: Config = {
           DEFAULT: "var(--brand-accent)",
         },
       },
+      backgroundImage: {
+        "gradient-primary": "linear-gradient(135deg, var(--brand-primary), var(--brand-secondary))",
+        "gradient-accent": "linear-gradient(135deg, var(--brand-primary), var(--brand-accent))",
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",

@@ -31,6 +31,7 @@ export function useWriteContract() {
 export function useWaitForTransactionReceipt(config: any) {
   return {
     isLoading: false,
+    isSuccess: false,
     data: undefined,
     error: null
   }
