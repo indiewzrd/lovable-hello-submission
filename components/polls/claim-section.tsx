@@ -18,6 +18,73 @@ interface ClaimSectionProps {
   hasVoted?: boolean
 }
 
+const CreatorClaimComponent = ({ 
+  shouldShow, 
+  isClaimingWinning, 
+  handleClaimWinningFunds 
+}: { 
+  shouldShow: boolean
+  isClaimingWinning: boolean
+  handleClaimWinningFunds: () => void
+}) => {
+  if (!shouldShow) return null
+  
+  return (
+    <div className="p-4 border rounded-lg space-y-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Trophy className="h-5 w-5 text-yellow-600" />
+          <span className="font-medium">Creator Rewards</span>
+        </div>
+        <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+          Available
+        </Badge>
+      </div>
+      <Button 
+        onClick={handleClaimWinningFunds}
+        disabled={isClaimingWinning}
+        className="w-full"
+      >
+        {isClaimingWinning ? 'Claiming...' : 'Claim Winning Funds'}
+      </Button>
+    </div>
+  )
+}
+
+const VoterRefundComponent = ({ 
+  shouldShow, 
+  isClaimingRefund, 
+  claimType,
+  handleClaimRefund 
+}: { 
+  shouldShow: boolean
+  isClaimingRefund: boolean
+  claimType: string | null
+  handleClaimRefund: () => void
+}) => {
+  if (!shouldShow) return null
+  
+  return (
+    <div className="p-4 border rounded-lg space-y-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <DollarSign className="h-4 w-4 text-blue-500" />
+          <span className="font-medium">Voter Refund</span>
+        </div>
+        <Badge variant="secondary">Non-winning vote</Badge>
+      </div>
+      <Button
+        onClick={handleClaimRefund}
+        disabled={isClaimingRefund || claimType === 'refund'}
+        size="sm"
+        className="w-full"
+      >
+        {isClaimingRefund && claimType === 'refund' ? "Claiming..." : "Claim Refund"}
+      </Button>
+    </div>
+  )
+}
+
 export function ClaimSection({
   pollAddress,
   pollCreator,
@@ -88,15 +155,35 @@ export function ClaimSection({
   const { isLoading: isClaimingRefund } = useWaitForTransactionReceipt({ hash: claimRefundHash })
   const { isLoading: isClaimingFee } = useWaitForTransactionReceipt({ hash: claimFeeHash })
 
-  // Check if user's vote is a winner - add type assertions to avoid unknown types
-  const isWinner: boolean = Boolean(voterChoice && winningOptions && 
-    (winningOptions as bigint[]).some((option: bigint) => Number(option) === Number(voterChoice)))
+  // Type-safe contract data with proper fallbacks
+  const isWinner: boolean = Boolean(
+    voterChoice && 
+    winningOptions && 
+    Array.isArray(winningOptions) &&
+    (winningOptions as bigint[]).some((option: bigint) => Number(option) === Number(voterChoice))
+  )
 
-  const isCreator: boolean = Boolean(address && pollCreator && 
-    address.toLowerCase() === pollCreator.toLowerCase())
+  const isCreator: boolean = Boolean(
+    address && 
+    pollCreator && 
+    typeof address === 'string' && 
+    typeof pollCreator === 'string' &&
+    address.toLowerCase() === pollCreator.toLowerCase()
+  )
     
-  const shouldShowCreatorClaim = Boolean(isCreator && !creatorClaimed && winnersCalculated)
-  const shouldShowVoterRefund = Boolean(hasVoted && !isWinner && !hasClaimedRefund && winnersCalculated)
+  // Explicitly typed boolean conditions for JSX rendering with proper casting
+  const shouldShowCreatorClaim: boolean = Boolean(
+    isCreator && 
+    (creatorClaimed as boolean) === false && 
+    (winnersCalculated as boolean) === true
+  )
+  
+  const shouldShowVoterRefund: boolean = Boolean(
+    hasVoted === true && 
+    !isWinner && 
+    (hasClaimedRefund as boolean) === false && 
+    (winnersCalculated as boolean) === true
+  )
 
   const handleCalculateWinners = async () => {
     try {
@@ -219,65 +306,35 @@ export function ClaimSection({
             </div>
           </div>
 
-          {/* Creator claim */}
-          {isCreator && !creatorClaimed && winnersCalculated && (
-            <div className="p-4 border rounded-lg space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Trophy className="h-5 w-5 text-yellow-600" />
-                  <span className="font-medium">Creator Rewards</span>
-                </div>
-                <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
-                  Available
-                </Badge>
-              </div>
-              <Button 
-                onClick={handleClaimWinningFunds}
-                disabled={isClaimingWinning}
-                className="w-full"
-              >
-                {isClaimingWinning ? 'Claiming...' : 'Claim Winning Funds'}
-              </Button>
-            </div>
-          )}
+          <CreatorClaimComponent 
+            shouldShow={shouldShowCreatorClaim}
+            isClaimingWinning={isClaimingWinning}
+            handleClaimWinningFunds={handleClaimWinningFunds}
+          />
 
-          {/* Voter refund */}
-          {hasVoted && !isWinner && !hasClaimedRefund && winnersCalculated && (
-            <div className="p-4 border rounded-lg space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <DollarSign className="h-4 w-4 text-blue-500" />
-                  <span className="font-medium">Voter Refund</span>
-                </div>
-                <Badge variant="secondary">Non-winning vote</Badge>
-              </div>
-              <Button
-                onClick={handleClaimRefund}
-                disabled={isClaimingRefund || claimType === 'refund'}
-                size="sm"
-                className="w-full"
-              >
-                {isClaimingRefund && claimType === 'refund' ? "Claiming..." : "Claim Refund"}
-              </Button>
-            </div>
-          )}
+          <VoterRefundComponent 
+            shouldShow={shouldShowVoterRefund}
+            isClaimingRefund={isClaimingRefund}
+            claimType={claimType}
+            handleClaimRefund={handleClaimRefund}
+          />
 
           {/* Success messages */}
-          {creatorClaimed && (
+          {Boolean(creatorClaimed) && (
             <div className="flex items-center gap-2 text-green-600">
               <CheckCircle className="h-4 w-4" />
               <span className="text-sm">Creator rewards claimed</span>
             </div>
           )}
 
-          {hasClaimedRefund && (
+          {Boolean(hasClaimedRefund) && (
             <div className="flex items-center gap-2 text-green-600">
               <CheckCircle className="h-4 w-4" />
               <span className="text-sm">Refund claimed</span>
             </div>
           )}
 
-          {feeClaimed && (
+          {Boolean(feeClaimed) && (
             <div className="flex items-center gap-2 text-green-600">
               <CheckCircle className="h-4 w-4" />
               <span className="text-sm">Platform fee claimed</span>
