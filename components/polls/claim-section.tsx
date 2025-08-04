@@ -94,6 +94,9 @@ export function ClaimSection({
 
   const isCreator: boolean = Boolean(address && pollCreator && 
     address.toLowerCase() === pollCreator.toLowerCase())
+    
+  const shouldShowCreatorClaim = Boolean(isCreator && !creatorClaimed && winnersCalculated)
+  const shouldShowVoterRefund = Boolean(hasVoted && !isWinner && !hasClaimedRefund && winnersCalculated)
 
   const handleCalculateWinners = async () => {
     try {
@@ -221,20 +224,19 @@ export function ClaimSection({
             <div className="p-4 border rounded-lg space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Trophy className="h-4 w-4 text-green-500" />
+                  <Trophy className="h-5 w-5 text-yellow-600" />
                   <span className="font-medium">Creator Rewards</span>
                 </div>
-                <span className="text-sm font-semibold">
-                  {winningAmount && feeAmount ? formatUnits(BigInt(winningAmount as any) - BigInt(feeAmount as any), 6) : "0"} USDC
-                </span>
+                <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+                  Available
+                </Badge>
               </div>
-              <Button
+              <Button 
                 onClick={handleClaimWinningFunds}
-                disabled={isClaimingWinning || claimType === 'creator'}
-                size="sm"
+                disabled={isClaimingWinning}
                 className="w-full"
               >
-                {isClaimingWinning && claimType === 'creator' ? "Claiming..." : "Claim Rewards"}
+                {isClaimingWinning ? 'Claiming...' : 'Claim Winning Funds'}
               </Button>
             </div>
           )}
